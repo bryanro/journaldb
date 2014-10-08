@@ -1,0 +1,31 @@
+{
+    "name": "journaldb",
+    "version": "1.0.0",
+    "description": "Journal on dropbox",
+    "author": {
+        "name": "Bryan Rosenbaum",
+        "email": "bryan.rosenbaum@gmail.com"
+    },
+    "website":{
+        "url": "http://bryankrosenbaum.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bryanro/journaldb"
+    },
+    "private": false,
+    "dependencies": {
+        "express":		"latest",
+        "body-parser":  "latest",
+        "method-override":  "latest",
+        "errorhandler": "latest",
+        "cookie-session":   "latest",
+        "moment":		"latest",
+        "underscore":	"latest",
+        "dropbox":      "latest"
+    },
+    "engines": {
+        "node":			"latest",
+        "npm":			"latest"
+    }
+}
