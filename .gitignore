@@ -1,0 +1,12 @@
+#############
+## WEBSTORM
+#############
+
+.idea/
+
+#############
+## PROJECT
+#############
+upload/
+node_modules/
+npm-debug.log
