@@ -98,21 +98,7 @@ var JournalDBApp = function() {
 
         // export the app so it can be used in other files
         module.exports.app = self.app;
-
-        /*self.app.configure(function () {
-            self.app.use(express.cookieParser()),
-            self.app.use(express.bodyParser({ uploadDir: __dirname + '/app/upload' })), // set the default upload directory
-            self.app.use(express.session({
-                secret: '!!!my secret goes here!!!',
-                cookie: {
-                    maxAge: self.app.config.sessionExpiration
-                }
-            }));
-            self.app.use(self.app.router),
-            self.app.use(express.static(__dirname + '/www')),
-            self.app.use(errorHandler());
-        });*/
-
+        
         self.app.use(bodyParser.urlencoded({ extended: false }));    // parse application/x-www-form-urlencoded
         self.app.use(bodyParser.json());    // parse application/json
         self.app.use(session({
