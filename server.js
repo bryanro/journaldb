@@ -98,13 +98,13 @@ var JournalDBApp = function() {
 
         // export the app so it can be used in other files
         module.exports.app = self.app;
-        
+
         self.app.use(bodyParser.urlencoded({ extended: false }));    // parse application/x-www-form-urlencoded
         self.app.use(bodyParser.json());    // parse application/json
         self.app.use(session({
             secret: "!!!journaldb!!!'"
         }));
-        self.app.use(express.static(__dirname + '/www'));
+        self.app.use(express.static(__dirname + '/app/www'));
         self.app.use(errorhandler());
 
         // initialize the routes
