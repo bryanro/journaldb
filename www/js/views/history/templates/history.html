@@ -1,0 +1,8 @@
+<% _.each(historyCollection.models, function (entryItem) { %>
+<div class="row">
+    <div class="col-sm-1">
+        <span class="history-year"><%=entryItem.get('yearNumber')%></span>
+    </div>
+    <div class="col-sm-11 col-history-entry-text"><%=entryItem.get('entryText')%></div>
+</div>
+<% }); %>

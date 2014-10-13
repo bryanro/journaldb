@@ -13,5 +13,10 @@ module.exports = function (app) {
             res.send('API is running');
         });
 
+    var journal = require('./controllers/journal');
+    app.route('/entries')
+        .post(journal.createNewEntry)
+        .get(journal.getEntriesForDay);
+
     logger.info('Finished setting up routes', 'routes.js');
 }

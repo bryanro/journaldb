@@ -6,6 +6,8 @@ var methodOverride = require('method-override');
 var errorhandler = require('errorhandler');
 var session = require('cookie-session');
 var logger = require('./app/server/modules/logger');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
 console.log('***************');
 console.log('***************');
@@ -17,6 +19,8 @@ var JournalDBApp = function() {
 
     // Scope.
     var self = this;
+
+    var context = 'server.js';
 
     /* ================================================================ */
     /* Helper functions. */
@@ -43,7 +47,7 @@ var JournalDBApp = function() {
             logger.warn('Received ' + sig + ' - terminating application', 'server.js');
             process.exit(1);
         }
-        logger.warn('Node server stopped', 'server.js');
+        logger.warn('Node server stopped', context);
     };
 
 
@@ -72,7 +76,7 @@ var JournalDBApp = function() {
      */
     self.initializeServer = function() {
         var env = 'development'; // default to development
-        logger.info('Environment: ' + env, 'server.js');
+        logger.info('Environment: ' + env, context);
 
         self.app = express();
         // set the config based on the environment
@@ -80,6 +84,17 @@ var JournalDBApp = function() {
 
         // set logging verbosity level
         logger.setVerbosity(self.app.config.verbosityLevel);
+
+
+
+        passport.use(new LocalStrategy(
+            function(username, password, done) {
+                console.log('passport use');
+                return done(null, {username:"test", password:"test1"});
+            }
+        ));
+
+
 
         // export the app so it can be used in other files
         module.exports.app = self.app;
@@ -98,12 +113,12 @@ var JournalDBApp = function() {
             self.app.use(errorHandler());
         });*/
 
-        self.app.use(express.static(__dirname + '/www'));
         self.app.use(bodyParser.urlencoded({ extended: false }));    // parse application/x-www-form-urlencoded
         self.app.use(bodyParser.json());    // parse application/json
         self.app.use(session({
             secret: "!!!journaldb!!!'"
         }));
+        self.app.use(express.static(__dirname + '/www'));
         self.app.use(errorhandler());
 
         // initialize the routes
@@ -122,6 +137,39 @@ var JournalDBApp = function() {
         self.initializeServer();
     };
 
+    self.initializeDropbox = function() {
+
+        var Dropbox = require('dropbox');
+        self.app.client = new Dropbox.Client({
+            key: self.app.config.dropboxKey,
+            secret: self.app.config.dropboxSecret,
+            token: self.app.config.dropboxToken
+        });
+        self.app.client.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
+        self.app.client.authenticate(function(error, client) {
+            if (error) {
+                // Replace with a call to your own error-handling code.
+                //
+                // Don't forget to return from the callback, so you don't execute the code
+                // that assumes everything went well.
+                logger.error('Error authenticating: ' + error), context;
+            }
+
+            // Replace with a call to your own application code.
+            //
+            // The user authorized your app, and everything went well.
+            // client is a Dropbox.Client instance that you can use to make API calls.
+            logger.debug('Successfully authenticated!', context);
+        });
+        self.app.client.getAccountInfo(function(error, accountInfo) {
+            if (error) {
+                logger.error('Error getting account info: ' + error, context);  // Something went wrong.
+            }
+
+            logger.info('Hello, ' + accountInfo.name, context);
+        });
+    };
+
 
     /**
      * Start the server (starts up the application).
@@ -129,7 +177,7 @@ var JournalDBApp = function() {
     self.start = function() {
         // Start the app on the specific interface (and port).
         self.app.listen(self.port, self.ipaddress, function() {
-            logger.info('Node server started: ' + self.ipaddress + ':' + self.port, 'server.js');
+            logger.info('Node server started: ' + self.ipaddress + ':' + self.port, context);
         });
     };
 };
@@ -142,3 +190,4 @@ var JournalDBApp = function() {
 var journalDBApp = new JournalDBApp();
 journalDBApp.initialize();
 journalDBApp.start();
+journalDBApp.initializeDropbox();

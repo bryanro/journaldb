@@ -22,7 +22,11 @@
         "cookie-session":   "latest",
         "moment":		"latest",
         "underscore":	"latest",
-        "dropbox":      "latest"
+        "dropbox":      "latest",
+        "underscore":   "latest",
+        "async":        "latest",
+        "passport":     "latest",
+        "passport-local":   "latest"
     },
     "engines": {
         "node":			"latest",
