@@ -163,8 +163,8 @@ var JournalDBApp = function() {
      */
     self.start = function() {
         // Start the app on the specific interface (and port).
-        self.app.listen(self.port, self.ipaddress, function() {
-            logger.info('Node server started: ' + self.ipaddress + ':' + self.port, context);
+        self.app.listen(self.port, function() {
+            logger.info('Node server started on port:' + self.port, context);
         });
     };
 };
