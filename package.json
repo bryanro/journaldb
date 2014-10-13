@@ -23,10 +23,10 @@
         "moment":		"latest",
         "underscore":	"latest",
         "dropbox":      "latest",
-        "underscore":   "latest",
         "async":        "latest",
         "passport":     "latest",
-        "passport-local":   "latest"
+        "passport-local":   "latest",
+        "forever":      "latest"
     },
     "engines": {
         "node":			"latest",
