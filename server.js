@@ -151,8 +151,9 @@ var JournalDBApp = function() {
             if (error) {
                 logger.error('Error getting account info: ' + error, context);  // Something went wrong.
             }
-
-            logger.info('Hello, ' + accountInfo.name, context);
+            else {
+                logger.info('Hello, ' + accountInfo.name, context);
+            }
         });
     };
 
