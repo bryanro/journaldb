@@ -12,9 +12,9 @@ define([
             var dateNow = new Date();
             this.entryDate = new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate())
         },
-        comparer: function(item) {
+        comparator: function(item) {
             // sort in reverse chronological order
-            return item.get('yearNumber');
+            return item.get('yearNumber') * -1;
         },
         setEntryDate: function(date) {
             this.entryDate = date;

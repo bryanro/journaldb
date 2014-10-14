@@ -54,6 +54,7 @@ define([
         },
 
         renderHistoryData: function() {
+            this.entryCollection.sort();
             console.log(this.entryCollection);
             console.log(this.entryCollection.models);
             this.$el.html(this.historyTemplate({
