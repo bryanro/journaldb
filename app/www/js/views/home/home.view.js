@@ -34,10 +34,12 @@ define([
             $('#datepicker').datepicker({
                 format: 'mm/dd/yyyy',
                 todayHighlight: true,
-                autoclose: true
+                autoclose: true,
+                todayBtn: true
             });
-            $('#datepicker').datepicker('update', this.dateToday);
+
             $('#datepicker').datepicker().on('changeDate', $.proxy(this.updateDateModel, this));
+            $('#datepicker').datepicker('setDate', this.dateToday);
 
             this.historyView = new HistoryView({el: '#journal-history', dateModel: this.dateModel});
             this.historyView.render();
@@ -72,6 +74,7 @@ define([
         },
 
         updateDateModel: function() {
+            console.log('updateDateModel');
             this.dateModel.set('entryDate', $('#datepicker').datepicker('getDate'));
         }
 
