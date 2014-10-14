@@ -26,6 +26,8 @@ define([
             this.entryCollection = new EntriesCollection();
             this.dateModel.on("change:entryDate", this.getHistoryDayForDay, this);
 
+            this.getHistoryDayForDay();
+
             $('textarea').autosize();
         },
 
@@ -55,12 +57,23 @@ define([
 
         renderHistoryData: function() {
             this.entryCollection.sort();
+            this.encodeEntryText();
             console.log(this.entryCollection);
             console.log(this.entryCollection.models);
             this.$el.html(this.historyTemplate({
                 entryDate: this.dateModel.get('entryDate'),
                 historyCollection: this.entryCollection
             }));
+        },
+
+        encodeEntryText: function() {
+            if (!this.entryCollection.isEncoded) {
+                this.entryCollection.each(function(entry) {
+                    entry.set('entryText', entry.get('entryText').replace(/\n/g, '<br/>'));
+                });
+
+                this.entryCollection.isEncoded = true;
+            }
         }
 
     });
