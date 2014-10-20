@@ -13,7 +13,7 @@ JournalController.createNewEntry = function(req, res, next) {
     logger.debug('Entering method', context);
 
     // default entryDate to today
-    var entryDate = JournalController.getTodaysDate();
+    var entryDate = JournalController.getTodaysDateWithOffset();
 
     if (req.param('entryDate')) {
         entryDate = req.param('entryDate');
@@ -145,6 +145,16 @@ JournalController.getEntriesForDay = function(req, res, next) {
 
 JournalController.getTodaysDate = function() {
     var dateNow = new Date();
+    return new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate(), 0, 0 ,0, 0);
+}
+
+/**
+ * Get a date with hours, minutes, seconds set to 0 based on today's date minus 12 hours; this will allow updates going late into the night and early the next morning
+ * @returns {Date}
+ */
+JournalController.getTodaysDateWithOffset = function() {
+    var dateNow = new Date();
+    dateNow.setTime(dateNow.getTime() - (12 * 60 * 60 * 1000));
     return new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate(), 0, 0 ,0, 0);
 }
 
