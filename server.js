@@ -6,8 +6,6 @@ var methodOverride = require('method-override');
 var errorhandler = require('errorhandler');
 var session = require('cookie-session');
 var logger = require('./app/server/modules/logger');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 
 console.log('***************');
 console.log('***************');
@@ -84,17 +82,6 @@ var JournalDBApp = function() {
 
         // set logging verbosity level
         logger.setVerbosity(self.app.config.verbosityLevel);
-
-
-
-        passport.use(new LocalStrategy(
-            function(username, password, done) {
-                console.log('passport use');
-                return done(null, {username:"test", password:"test1"});
-            }
-        ));
-
-
 
         // export the app so it can be used in other files
         module.exports.app = self.app;
