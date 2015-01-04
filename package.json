@@ -24,9 +24,12 @@
         "underscore":	"latest",
         "dropbox":      "latest",
         "async":        "latest",
-        "passport":     "latest",
-        "passport-local":   "latest",
-        "forever":      "latest"
+        "forever":      "latest",
+        "nedb":         "latest",
+        "morgan":       "latest",
+        "cookie-parser":    "latest",
+        "winston":      "latest",
+        "jade":         "latest"
     },
     "engines": {
         "node":			"latest",

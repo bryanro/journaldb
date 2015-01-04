@@ -1,199 +1,124 @@
-var app = module.parent.exports.app;
-var logger = require('../modules/logger');
-var Dropbox = require('dropbox');
 var _ = require('underscore');
-var async = require('async');
-
-var context = 'journal.js';
+var logger = require('winston').Logger;
+var Journal = require('../models/journal-model');
 
 var JournalController = {};
 
-JournalController.createNewEntry = function(req, res, next) {
-    var context = 'createNewEntry';
-    logger.debug('Entering method', context);
-
-    // default entryDate to today
-    var entryDate = JournalController.getTodaysDateWithOffset();
-
-    if (req.param('entryDate')) {
-        entryDate = req.param('entryDate');
-        logger.debug('entryDate set by parameter', context);
-    }
-
-    logger.debug('entryDate: ' + entryDate.toDateString(), context);
-
-    // path to save file
-    var filepath = JournalController.getPathFromDate(entryDate, false);
-    var filename = JournalController.getFileName(entryDate);
-    logger.debug('path to save file: ' + filepath);
-    logger.debug('filename: ' + filename);
-    logger.debug('filepath + filename: ' + filepath + filename);
+/**
+ *
+ * @param req
+ *      entryText: the text for that day's entry
+ *      entryDay: JSON object with: { year: ####, month: ##, dayOfMonth: ## }
+ * @param res
+ * @param next
+ */
+JournalController.createNewEntry = function (req, res, next) {
 
     var entryText = req.param('entryText');
-    logger.debug('entryText: ' + entryText);
+    var entryDay = req.param('entryDay');
+    if (typeof entryDay == 'string') {
+        entryDay = JSON.parse(req.param('entryDay'));
+    }
 
-    app.client.writeFile(filepath + filename, entryText, function(error, stat) {
-        if (error) {
-            logger.error(error);
-            res.status(403).send('Bad Request');
+    if (!entryText && !entryDay.year && !entryDay.month && !entryDay.dayOfMonth) {
+        res.status(400).send({ message: 'One of the following fields is not present: entryText, entryDay.year, entryDay.month, entryDay.dayOfMonth' });
+        return;
+    }
+
+    Journal.createEntry(entryDay, entryText, function (err, journalRecord) {
+        if (err) {
+            res.status(500).send({ message: err });
         }
         else {
-            logger.debug("File '" + stat.name + "' saved to [" + stat.path + "] with revision " + stat.versionTag);
-            logger.debug('Success, sending 200 response', context);
-            res.status(200).send({
-                entryText: entryText,
-                fileName: stat.name,
-                folderPath: stat.path.replace(stat.name, ''),
-                fullPath: stat.path,
-                isJournalFile: true,
-                yearNumber: entryDate.getFullYear(),
-                entryDate: entryDate
-            });
+            res.status(201).send(journalRecord);
         }
     });
 }
 
-JournalController.getEntriesForDay = function(req, res, next) {
-    var context = 'getEntryForDay';
+JournalController.updateEntryByDay = function (req, res, next) {
 
-    var lookupDate = JournalController.getTodaysDate();
-    if (req.param('entryDate')) {
-        lookupDate = new Date(JSON.parse(req.param('entryDate')));
+    var entryText = req.param('entryText');
+    var entryDay = req.param('entryDay');
+    if (typeof entryDay == 'string') {
+        entryDay = JSON.parse(req.param('entryDay'));
     }
-    logger.debug('lookupDate: ' + lookupDate, context);
 
-    var datePath = JournalController.getPathFromDate(lookupDate, false);
+    if (!entryText && !entryDay.year && !entryDay.month && !entryDay.dayOfMonth) {
+        res.status(400).send({ message: 'One of the following fields is not present: entryText, entryDay.year, entryDay.month, entryDay.dayOfMonth' });
+        return;
+    }
 
-    app.client.readdir(datePath, function(error, yearfolders) {
-        var dataForDay = [];
-
-        if (error) {
-            logger.info('Error reading directory "' + datePath + '": likely no data exists for that date yet', context);
-            res.status(204).send('No Content');
+    Journal.updateEntry(entryDay, entryText, function (err, journalRecord) {
+        if (err) {
+            res.status(500).send({ message: err });
         }
         else {
-            logger.debug('Entries: ' + JSON.stringify(yearfolders, null, 2));
-                async.each(yearfolders, function(fileName, doneProcessingFile) {
-                    var fullFilePath = datePath + fileName;
-                    if (JournalController.isJournalFile(fileName)) {
-                        app.client.readFile(fullFilePath, function (error, fileContents) {
-                            if (error) {
-                                logger.error('Error reading contents of "' + fullFilePath + '": ' + error, context);
-                            }
-                            else {
-                                logger.debug('Successfully read file contents: ' + fileContents, context);
-                                dataForDay.push({
-                                    fileName: fileName,
-                                    folderPath: datePath,
-                                    fullPath: fullFilePath,
-                                    isJournalFile: true,
-                                    entryText: fileContents,
-                                    yearNumber: JournalController.getYearFromFilename(fileName),
-                                    entryDate: new Date(JournalController.getYearFromFilename(fileName), lookupDate.getMonth(), lookupDate.getDate())
-                                });
-                            }
-                            doneProcessingFile();
-                        });
-                    }
-                    else if (JournalController.isFileImage(fileName)) {
-                        app.client.thumbnailUrl(fullFilePath, function (error, url) {
-                            if (error) {
-                                logger.error('Unable to create thumbnail URL for "' + fullFilePath + '": ' + error, context);
-                            }
-                            else {
-                                logger.debug('Successfully created thumbnail URL for "' + fullFilePath + '": ' + url, context);
-                                dataForDay.push({
-                                    fileName: fileName,
-                                    //folderPath: yearFolderPath,
-                                    folderPath: datePath,
-                                    fullPath: fullFilePath,
-                                    isJournalFile: false,
-                                    thumbnailUrl: url,
-                                    yearNumber: JournalController.getYearFromFilename(fileName),
-                                    entryDate: new Date(JournalController.getYearFromFilename(fileName), lookupDate.getMonth(), lookupDate.getDate())
-                                });
-                            }
-                            doneProcessingFile();
-                        })
-                    }
-                    else {
-                        logger.warn('Ignoring file "' + fileName + '": not a journal.txt or an image', context);
-                        doneProcessingFile();
-                    }
-                },
-                // for completion of processing files in folder
-                function (fileIterationError) {
-                    if (fileIterationError) {
-                        logger.error('Error looping through year folders: ' + error, context);
-                        res.status(400).send(error);
-                    }
-                    else {
-                        logger.debug('Done looping through files in date folder', context);
-                        if (dataForDay.length < 1) {
-                            logger.info('Folder exists for day, but no content within folder', context);
-                            res.status(204).send('No Content');
-                        }
-                        else {
-                            logger.debug(dataForDay.length + ' items found for day', context);
-                            res.status(200).send(dataForDay);
-                        }
-                    }
-                });
+            res.status(200).send(journalRecord);
         }
     });
+
 }
 
-JournalController.getTodaysDate = function() {
-    var dateNow = new Date();
-    return new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate(), 0, 0 ,0, 0);
+JournalController.updateEntryById = function (req, res, next) {
+
+    var id = req.param('id');
+    var entryText = req.param('entryText');
+
+    JournalEntry.updateEntry(id, entryText, function (err, journalRecord) {
+        if (err) {
+            res.status(500).status({ message: err });
+        }
+        else {
+            res.status(200).send(journalRecord);
+        }
+    });
+
 }
 
-/**
- * Get a date with hours, minutes, seconds set to 0 based on today's date minus 12 hours; this will allow updates going late into the night and early the next morning
- * @returns {Date}
- */
-JournalController.getTodaysDateWithOffset = function() {
-    var dateNow = new Date();
-    dateNow.setTime(dateNow.getTime() - (12 * 60 * 60 * 1000));
-    return new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate(), 0, 0 ,0, 0);
+JournalController.findAllEntries = function (req, res, next) {
+
+    Journal.findEntries({}, function (err, results) {
+        if (err) {
+            res.status(500).send({ message: err });
+        }
+        else {
+            res.status(200).send(results);
+        }
+    });
+
 }
 
-JournalController.getPathFromDate = function(date, includeYear) {
-    var month = date.getMonth();
-    var day = date.getDate();
-    var year = date.getFullYear();
+JournalController.findEntriesForDay = function (req, res, next) {
 
-    if (month < 10) {
-        month = "0" + month;
-    }
-    if (day < 10) {
-        day = "0" + day;
-    }
+    var month = parseInt(req.param('month'));
+    var dayOfMonth = parseInt(req.param('dayOfMonth'));
 
-    if (includeYear) {
-        return month + "/" + day + "/" + year + "/";
-    }
-    else {
-        return month + "/" + day + "/";
-    }
+    Journal.findEntries({ "entryDate.month": month, "entryDate.dayOfMonth": dayOfMonth }, function (err, results) {
+        if (err) {
+            res.status(500).send({message: err});
+        }
+        else {
+            res.status(200).send(results);
+        }
+    });
+
 }
 
-JournalController.getFileName = function(date) {
-    return date.getFullYear() + '.jnl';
-}
+JournalController.findEntriesForDate = function (req, res, next) {
 
-JournalController.getYearFromFilename = function(fileName) {
-    return fileName.replace('.jnl', '');
-}
+    var year = parseInt(req.param('year'));
+    var month = parseInt(req.param('month'));
+    var dayOfMonth = parseInt(req.param('dayOfMonth'));
 
-JournalController.isJournalFile = function(fileName) {
-    return fileName.match(/\.(jnl)$/);
-}
+    Journal.findOneEntry({ "entryDate.year": year, "entryDate.month": month, "entryDate.dayOfMonth": dayOfMonth }, function (err, results) {
+        if (err) {
+            res.status(500).send({message: err});
+        }
+        else {
+            res.status(200).send(results);
+        }
+    });
 
-JournalController.isFileImage = function(fileName) {
-    return fileName.match(/\.(jpg|jpeg|png|gif)$/);
 }
 
 module.exports = JournalController;
-
-logger.debug('journal.js controller loaded', context);
