@@ -96,7 +96,7 @@ JournalModel.deleteEntry = function () {
 }
 
 JournalModel.initialize = function () {
-    JournalModel.db = new Datastore({ filename: 'app/server/data/journal.db', autoload: true });
+    JournalModel.db = new Datastore({ filename: __dirname + '/../data/journal.db', autoload: true });
 }
 
 JournalModel.initialize();
