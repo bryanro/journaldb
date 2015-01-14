@@ -64,7 +64,32 @@ JournalController.updateEntryById = function (req, res, next) {
     var id = req.param('id');
     var entryText = req.param('entryText');
 
-    JournalEntry.updateEntry(id, entryText, function (err, journalRecord) {
+    Journal.updateEntry(id, entryText, function (err, journalRecord) {
+        if (err) {
+            res.status(500).status({ message: err });
+        }
+        else {
+            res.status(200).send(journalRecord);
+        }
+    });
+
+}
+
+JournalController.updateEntryDate = function (req, res, next) {
+
+    var id = req.param('id');
+    var entryDay = req.param('entryDay');
+
+    if (typeof entryDay == 'string') {
+        entryDay = JSON.parse(req.param('entryDay'));
+    }
+
+    if (!entryDay.year && !entryDay.month && !entryDay.dayOfMonth) {
+        res.status(400).send({ message: 'One of the following fields is not present: entryText, entryDay.year, entryDay.month, entryDay.dayOfMonth' });
+        return;
+    }
+
+    Journal.updateEntryDate(id, entryDay, function (err, journalRecord) {
         if (err) {
             res.status(500).status({ message: err });
         }

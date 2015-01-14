@@ -74,6 +74,33 @@ JournalModel.updateEntry = function (entryDay, entryText, callback) {
 }
 
 /**
+ * Update entry date
+ * @param entryDay { year: ####, month: ##, dayOfMonth: ## }
+ * @param callback (err, numReplaced)
+ */
+JournalModel.updateEntryDate = function (id, entryDay, callback) {
+    var searchCriteria = { _id: id };
+    JournalModel.db.update(searchCriteria
+        , { $set: {
+            "entryDate.year": entryDay.year
+            , "entryDate.month": entryDay.month
+            , "entryDate.dayOfMonth": entryDay.dayOfMonth
+            , lastUpdateDate: new Date() } }
+        , { }
+        , function (err, numReplaced) {
+            if (err) {
+                callback(err);
+            }
+            else if (numReplaced && numReplaced < 1) {
+                callback('0 records match, none updated');
+            }
+            else {
+                JournalModel.findOneEntry(searchCriteria, callback);
+            }
+        })
+}
+
+/**
  * Find all entries that match the search criteria and sort by date in reverse order
  * @param searchCriteria
  * @param callback

@@ -9,5 +9,6 @@ router.get('/month/:month/dayOfMonth/:dayOfMonth', journal.findEntriesForDay);
 router.get('/year/:year/month/:month/dayOfMonth/:dayOfMonth', journal.findEntriesForDate);
 //router.get('/:id', journal.findEntryById);
 router.put('/:id', journal.updateEntryById);
+router.put('/:id/date', journal.updateEntryDate);
 
 module.exports = router;
