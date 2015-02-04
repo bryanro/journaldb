@@ -28,6 +28,7 @@
         "nedb":         "latest",
         "morgan":       "latest",
         "cookie-parser":    "latest",
+        "basic-auth-connect": "latest",
         "winston":      "latest",
         "jade":         "latest"
     },

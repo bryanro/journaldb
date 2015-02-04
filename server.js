@@ -2,10 +2,12 @@ var express = require('express')
     , http = require('http')
 // Load environment based configuration
     , env = process.env.NODE_ENV || 'development'
-    , config = require('./config')[ env]
+    , config = require('./config')[env]
     , logger = require('winston');
 
 var app = express();
+
+app.config = config;
 
 app.set('port', process.env.PORT || 3005);
 
