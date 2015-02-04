@@ -30,7 +30,9 @@
         "cookie-parser":    "latest",
         "basic-auth-connect": "latest",
         "winston":      "latest",
-        "jade":         "latest"
+        "jade":         "latest",
+        "cron":         "latest",
+        "time":         "latest"
     },
     "engines": {
         "node":			"latest",

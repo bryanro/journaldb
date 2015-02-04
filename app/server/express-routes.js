@@ -1,9 +1,11 @@
 var test = require('./routes/test');
 var journal = require('./routes/journal');
+var scheduler = require('./routes/scheduler');
 
 module.exports = function (app) {
     app.use('/test', test);
     app.use('/journal', journal);
+    app.use('/scheduler', scheduler);
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {
